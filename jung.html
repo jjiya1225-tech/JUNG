@@ -169,10 +169,10 @@
     .gangbar{flex-wrap:nowrap;gap:6px}
     .gangbar .opt{flex:1 1 0;min-width:0;padding:9px 2px}
     .gangbar .opt .t{font-size:16px}
-    /* 미리보기: 프레임 높이 고정, 넘치면 미리보기 영역만 가로 스크롤(페이지는 안 깨짐) */
-    .stage{padding:14px 0 6px;overflow-x:auto}
-    .pf .pf-fr{height:104px}
-    .wall{padding:14px;width:100%}
+    /* 미리보기: 5구가 화면 폭을 꽉 채우는 높이로 고정 → 1구도 동일 높이(가로만 짧음) */
+    .stage{padding:14px 0 6px;overflow-x:auto;justify-content:center}
+    .pf .pf-fr{height:calc((100vw - 60px) / 4.6)}
+    .wall{padding:14px 0;width:100%}
     .frame{width:100%;justify-content:center;padding:8px}
     .opening{width:auto;flex:1 1 0;min-width:0;height:auto;aspect-ratio:1/1;max-width:108px}
     .module svg{width:82%;height:82%}
@@ -202,7 +202,17 @@
     .thumbs{grid-template-columns:repeat(2,1fr);max-height:none;flex:1 1 auto;overflow:auto}
     .doc{max-width:100%;width:100%;min-height:100%;border-radius:0;display:flex;flex-direction:column}
     .doc .dochead{position:sticky;top:0;background:#fff;z-index:2}
-    #docBody{flex:1 1 auto;overflow:auto}
+    #docBody{flex:1 1 auto;overflow:auto;padding:16px 14px}
+    /* 견적요청서: 모바일 정리 */
+    .pdoc h1{font-size:18px}
+    .pdoc .meta{flex-direction:column;gap:8px;margin:12px 0 16px}
+    .pdoc .meta>div{text-align:left!important;display:flex;flex-direction:column;gap:6px}
+    .pdoc .meta .fill{min-width:0;width:100%;border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:13px}
+    .pdoc table{font-size:12px}
+    .pdoc th,.pdoc td{padding:7px 9px}
+    .pdoc .pf .pf-fr{height:70px}
+    .docfoot{flex-direction:column-reverse;gap:8px}
+    .docfoot .btn{width:100%}
   }
   /* overlay/modal */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:2147483600;
@@ -319,7 +329,6 @@
         <h3>구성 목록 <span class="cnt" id="cartCnt">0건</span></h3>
         <div id="cartList"><div class="empty">담은 항목이 없습니다.</div></div>
         <button class="btn primary acts" onclick="openDoc('quote')">견적 요청서 만들기</button>
-        <div style="font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.5">단가는 표시되지 않습니다. 견적 요청서를 만들어 칸트라이팅에 보내주시면 단가를 산정해 드립니다.</div>
       </section>
     </aside>
   </div>
