@@ -463,8 +463,8 @@ function photoFrame(colorKey,gang,modNames,interactive){
 }
 function photoThumb(colorKey,name){
   var p=modPos(name);
-  if(hasPhoto()&&p!=null&&ASSETS.mod[colorKey]&&ASSETS.mod[colorKey][p])
-    return '<img class="thmb" src="'+ASSETS.mod[colorKey][p]+'" alt="">';
+  if(hasPhoto()&&p!=null&&ASSETS.mod[colorKey]&&ASSETS.mod[colorKey][p]!=null)
+    return '<img class="thmb" src="'+IMG(ASSETS.mod[colorKey][p])+'" alt="">';
   return null;
 }
 
