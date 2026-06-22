@@ -159,7 +159,7 @@
     .mbar .mp{line-height:1.25}.mbar .mp small{font-size:11px;color:var(--sub);display:block}
     .mbar .mp b{font-size:18px}.mbar .mbtns{display:flex;gap:8px}
     .mbar .btn{width:auto;padding:12px 16px;margin:0}
-    body{padding-bottom:78px}aside{position:static}
+    body{padding-bottom:104px}aside{position:static}
     header.top .hint{display:none}.step{padding:18px 16px}
     #docBody{padding:18px 14px}.docfoot{flex-wrap:wrap}.docfoot .btn{flex:1;min-width:130px}
   }
@@ -250,9 +250,9 @@
   .thumb .tp{font-size:11px;color:var(--accent2);font-weight:700;margin-top:3px}
   .thumb .tc .thmb{width:78px;height:78px;object-fit:contain;border-radius:4px}
   /* 실사 합성 프레임 */
-  /* 프레임: 5구=폭100% 기준 비율폭 → 높이 자동 동일, 가로 안 넘침 */
+  /* 프레임: 폭은 구 수 비율(%), 높이는 aspect-ratio로 확정 → 모바일/문서 어디서나 안정 */
   .pf{position:relative;display:inline-block;vertical-align:top;line-height:0;overflow:visible;max-width:100%}
-  .pf .pf-fr{width:100%;height:auto;display:block;border-radius:3px}
+  .pf .pf-fr{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;border-radius:3px}
   .pf .pf-mod{position:absolute;object-fit:fill;z-index:1}
   .pf .pf-bw{z-index:3;object-fit:contain;object-position:bottom}
   .pf .pf-empty{position:absolute;display:flex;align-items:center;justify-content:center;
@@ -489,9 +489,10 @@ function photoFrame(colorKey,gang,modNames,interactive){
   }
   var fimg=IMG(ASSETS.frame[colorKey][gang]);
   var rects=ASSETS.layout[gang]||[];
-  /* 5구=폭100% 기준 비율폭 → 높이는 전 구수 동일, 절대 가로 안 넘침 */
+  /* 폭은 구 수 비율(5구=100%), 높이는 aspect-ratio로 확정 → 미리보기 안정 */
   var FRPCT=[0,22,41,60,79,100];
-  var html='<div class="pf" style="width:'+(FRPCT[gang]||100)+'%">';
+  var FRAR=[0,1.0,1.87,2.75,3.62,4.57];
+  var html='<div class="pf" style="width:'+(FRPCT[gang]||100)+'%;aspect-ratio:'+(FRAR[gang]||1)+'">';
   html+='<img class="pf-fr" src="'+fimg+'" alt="">';
   rects.forEach(function(r,i){
     var nm=(modNames||[])[i];
@@ -773,13 +774,21 @@ function printDoc(){
   const d=new Date().toISOString().slice(0,10);
   const tt='융스위치견적요청'+(info.c?'_'+info.c:'')+'_'+d;
   const w=window.open('','_blank');
+  if(!w){ alert('PDF 저장을 위해 팝업을 허용해 주세요. (브라우저 주소창의 팝업 차단 해제)'); return; }
   w.document.write(`<html><head><meta charset="utf-8"><title>${tt}</title>
   <style>body{font-family:-apple-system,"Noto Sans KR",sans-serif;padding:40px;color:#1a1a1a}h1{font-size:24px}
   table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}th,td{border:1px solid #ccc;padding:7px 10px;vertical-align:top}
   .num{text-align:right;width:70px}th{background:#f4f4f2}.grp td{background:#faf8f4;font-weight:700;font-size:11px}
-  .meta{display:flex;justify-content:space-between;margin:14px 0;font-size:13px;color:#555}</style></head>
+  .meta{display:flex;justify-content:space-between;margin:14px 0;font-size:13px;color:#555}
+  /* 구성 미리보기(실사 합성) 렌더용 */
+  .pf{position:relative;display:inline-block;vertical-align:top;line-height:0;max-width:100%}
+  .pf .pf-fr{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;border-radius:3px}
+  .pf .pf-mod{position:absolute;object-fit:fill}
+  .pf .pf-bw{object-fit:contain;object-position:bottom}
+  .pf .pf-empty,.pf .pf-hit{display:none}
+  @media print{@page{margin:12mm}}</style></head>
   <body>${reqInner(lastItems,'print',info)}</body></html>`);
-  w.document.close();w.focus();setTimeout(()=>w.print(),300);}
+  w.document.close();w.focus();setTimeout(()=>w.print(),350);}
 
 function resetConfig(){state={material:DATA.materials[0].id,color:DATA.materials[0].colors[0].name,
   gang:1,mods:[null],wallboxQty:{}};document.getElementById('qty').value=1;renderAll();}
