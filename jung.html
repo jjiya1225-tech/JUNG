@@ -11,6 +11,9 @@
     --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  /* 페이지(body) 스크롤 없음 → 내부 컨테이너(#app)만 스크롤, 바깥으로 새지 않음 */
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  #app{height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
     background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
@@ -280,6 +283,7 @@
 </style>
 </head>
 <body>
+<div id="app">
 <header class="top">
   <div class="wrap">
     <div class="brand"><div class="logo">JU</div>
@@ -360,6 +364,7 @@
   </div>
 </div>
 
+</div><!-- /#app -->
 <!-- mobile bar -->
 <div class="mbar" id="mbar">
   <div class="mp"><small id="mbLabel">JUNG 융스위치 구성</small><b id="mbCart" style="font-size:14px">0건 담음</b></div>
@@ -801,7 +806,8 @@ function goStep(n){var e=document.getElementById('step'+n);if(e)e.scrollIntoView
     for(var n=1;n<=4;n++){var s=document.getElementById('step'+n);if(s&&s.getBoundingClientRect().top<=130)cur=n;}
     document.querySelectorAll('.snav').forEach(function(b){b.classList.toggle('on',+b.dataset.s===cur);});
   }
-  window.addEventListener('scroll',upd,{passive:true}); setTimeout(upd,100);
+  var sc=document.getElementById('app')||window;
+  sc.addEventListener('scroll',upd,{passive:true}); window.addEventListener('scroll',upd,{passive:true}); setTimeout(upd,100);
 })();
 
 renderAll();renderCart();
