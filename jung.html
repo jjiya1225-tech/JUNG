@@ -801,10 +801,12 @@ function reqInner(items,mode,info){
        <div style="text-align:right">작성일: ${today}<br>현장/프로젝트: ${info.s||'________'}</div>`;
   const codeBox = mode==='screen'
     ? `<div style="margin-top:20px;border-top:2px dashed var(--line);padding-top:16px">
-        <div style="font-weight:700;font-size:13px;margin-bottom:4px">구성 코드 (칸트라이팅 전송용)</div>
-        <div style="font-size:11.5px;color:var(--sub);margin-bottom:8px">아래 코드를 복사해 칸트라이팅에 보내시면 단가를 산정해 드립니다.</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px">구성 코드</div>
+        <div style="font-size:11.5px;color:var(--sub);margin-bottom:8px">아래 버튼을 누르면 코드가 복사되고 <b>칸트라이팅 카카오톡 채널</b>이 열립니다.<br>① 채팅창에 <b>코드 붙여넣기</b> → 견적서를 자동으로 받아보고, ② 이어서 <b>‘견적 요청합니다’</b> 메시지를 보내시면 담당자가 확인 후 연락드립니다.</div>
         <textarea id="reqcode" readonly style="width:100%;height:60px;font-size:11px;font-family:monospace;border:1px solid var(--line);border-radius:6px;padding:8px;resize:none">${encodeReq(items,info||{})}</textarea>
-        <button onclick="copyReq()" class="btn primary" style="width:auto;padding:9px 18px;margin-top:8px;font-size:13px">코드 복사</button></div>`
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button onclick="sendKakao()" class="btn" style="width:auto;padding:10px 18px;font-size:13px;font-weight:700;background:#FEE500;color:#191600;border:none">카카오톡 채널로 보내기</button>
+          <button onclick="copyReq()" class="btn ghost" style="width:auto;padding:10px 18px;font-size:13px">코드만 복사</button></div></div>`
     : '';
   return `<div class="pdoc"><h1>견적 요청서</h1>
     <div class="meta">${meta}</div>
@@ -828,7 +830,28 @@ function docHTML(){
 }
 function copyReq(){updateCode();var t=document.getElementById('reqcode');if(!t)return;t.select();
   try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand('copy');}
-  alert('구성 코드가 복사되었습니다. 칸트라이팅에 전달해 주세요.');}
+  alert('구성 코드가 복사되었습니다. 칸트라이팅 카카오톡 채널로 보내주세요.');}
+
+/* ===== 카카오톡 채널 바로가기 ===== */
+/* ↓↓↓ 칸트라이팅 카카오톡 채널 홈 URL 또는 검색용 ID 한 줄만 입력하세요 ↓↓↓ */
+const KAKAO_CH = 'http://pf.kakao.com/_xftxlxfX/chat';   /* 칸트라이팅 카카오톡 채널 채팅 */
+function kakaoChatUrl(){
+  var v=(KAKAO_CH||'').trim(); if(!v) return '';
+  if(/^https?:\/\//i.test(v)) return v.replace(/\/+$/,'').replace(/\/(chat|home)$/i,'')+'/chat';
+  return 'http://pf.kakao.com/'+v.replace(/^\//,'')+'/chat';
+}
+function sendKakao(){
+  updateCode();
+  var t=document.getElementById('reqcode');
+  if(t){t.select();try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand('copy');}catch(_){} }}
+  var u=kakaoChatUrl();
+  if(u){
+    alert('구성 코드가 복사되었습니다.\n\n열리는 채팅창에서\n① 코드를 붙여넣어 견적서를 받고\n② 이어서 ‘견적 요청합니다’ 메시지를 보내주세요. (담당자 확인용)');
+    window.open(u,'_blank');
+  }else{
+    alert('구성 코드가 복사되었습니다.\n카카오톡에서 ‘칸트라이팅’ 채널을 검색해 붙여넣어 주세요.');
+  }
+}
 function openDoc(type){docType='quote';switchDoc();document.getElementById('overlay').classList.add('on');jungModal(true);}
 function switchDoc(){document.getElementById('docBody').innerHTML=docHTML();}
 function closeDoc(){document.getElementById('overlay').classList.remove('on');jungModal(false);}
