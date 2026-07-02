@@ -147,7 +147,10 @@
   .citem .cd{color:var(--sub);font-size:11.5px;margin-top:3px}
   .citem .cb{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
   .citem .cb .pr{font-weight:700}
+  .citem .cacts{display:flex;gap:4px;flex:none}
+  .citem .edit{background:none;border:none;color:#2b57b5;font-size:11.5px;cursor:pointer;font-weight:600}
   .citem .del{background:none;border:none;color:#c0392b;font-size:11.5px;cursor:pointer}
+  .citem.editing{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,0,0,.06)}
   .empty{color:var(--sub);font-size:12.5px;text-align:center;padding:14px 0}
   .acts{margin-top:14px}
   .fill{border:none;border-bottom:1px solid #999;font:inherit;color:var(--ink);min-width:150px;padding:1px 4px;outline:none;background:transparent}
@@ -719,22 +722,52 @@ function nextRoomName(base){
   return base+' '+(Math.max.apply(null,nums)+1);
 }
 function setName(base){document.getElementById('cfgName').value=nextRoomName(base);}
+/* 수정 중인 목록 인덱스 (null=신규 담기) */
+let editIdx=null;
+function materialOfColor(ck){for(const m of DATA.materials){if(m.colors.find(c=>c.name===ck))return m.id;}return DATA.materials[0].id;}
+function updateAddLabel(){
+  var editing=editIdx!=null;
+  var b=document.getElementById('addBtn'); if(b)b.textContent=editing?'수정 완료':'＋ 목록에 담기';
+  var mb=document.querySelector('#mbar .btn.primary'); if(mb)mb.textContent=editing?'수정완료':'＋ 담기';
+  var h=document.querySelector('.quote h3'); if(h)h.textContent=editing?('현재 구성 · 수정 중 ('+(editIdx+1)+'번)'):'현재 구성';
+}
 function addToCart(){
   if(!validity().ok)return;
   const c=colorObj(),m=matObj();
   const q=Math.max(1,parseInt(document.getElementById('qty').value)||1);
   var typed=(document.getElementById('cfgName').value||'').trim();
-  var name=typed?nextRoomName(typed):nextRoomName('거실');
-  cart.push({name:name,colorKey:state.color,color:c.ko,material:m.name,colorHex:c.hex,colorDark:c.dark,
+  var item={colorKey:state.color,color:c.ko,material:m.name,colorHex:c.hex,colorDark:c.dark,
     gang:state.gang,mods:state.mods.map(mid=>funcByName(mid).name),
     modTypes:state.mods.map(mid=>funcByName(mid).type),
     modImgs:state.mods.map(mid=>funcByName(mid).img),
-    wallbox:wallboxList(),qty:q});
+    wallbox:wallboxList(),qty:q};
+  if(editIdx!=null){                               /* 수정 저장: 위치·이름 유지 */
+    item.name=typed||(cart[editIdx]&&cart[editIdx].name)||'구성';
+    cart[editIdx]=item; editIdx=null;
+  }else{
+    item.name=typed?nextRoomName(typed):nextRoomName('거실');
+    cart.push(item);
+  }
   renderCart();
   resetConfig();                                  /* 담은 뒤 전체 초기화 */
   var nf=document.getElementById('cfgName'); if(nf)nf.value='';
 }
-function delItem(i){cart.splice(i,1);renderCart();}
+/* 목록 항목을 빌더로 불러와 수정 */
+function editItem(i){
+  var it=cart[i]; if(!it)return;
+  state.material=materialOfColor(it.colorKey);
+  state.color=it.colorKey;
+  state.gang=it.gang;
+  state.mods=(it.mods||[]).slice();
+  state.wallboxQty={}; (it.wallbox||[]).forEach(function(w){state.wallboxQty[w.id]=w.qty;});
+  editIdx=i;
+  renderAll();
+  var qe=document.getElementById('qty'); if(qe)qe.value=it.qty||1;
+  var nf=document.getElementById('cfgName'); if(nf)nf.value=it.name||'';
+  renderQuote(); updateAddLabel();
+  var app=document.getElementById('app'); if(app)app.scrollTo({top:0,behavior:'smooth'});
+}
+function delItem(i){cart.splice(i,1); if(editIdx===i){editIdx=null;resetConfig();} else if(editIdx!=null&&i<editIdx){editIdx--;} renderCart();}
 function renderCart(){
   document.getElementById('cartCnt').textContent=cart.length+'건';
   const list=document.getElementById('cartList');
@@ -742,7 +775,7 @@ function renderCart(){
   else{
     let sub=0;
     let html=cart.map((it,i)=>{const line=itemUnit(it)*it.qty; sub+=line; return `
-    <div class="citem"><div class="ct"><span>${it.name?'<b>'+it.name+'</b> · ':''}LS990 ${it.color} · ${it.gang}구 ×${it.qty}</span><button class="del" onclick="delItem(${i})">삭제</button></div>
+    <div class="citem${i===editIdx?' editing':''}"><div class="ct"><span>${it.name?'<b>'+it.name+'</b> · ':''}LS990 ${it.color} · ${it.gang}구 ×${it.qty}</span><span class="cacts"><button class="edit" onclick="editItem(${i})">수정</button><button class="del" onclick="delItem(${i})">삭제</button></span></div>
     <div class="cd">${it.material}<br>${it.mods.join(' · ')}${it.wallbox&&it.wallbox.length?'<br>매립박스: '+it.wallbox.map(w=>w.name.replace('매립박스 ','')+'×'+w.qty).join(', '):''}</div>
     <div class="cb"><span style="font-size:11.5px;color:var(--sub)">세트단가 ${won(itemUnit(it))} × ${it.qty}</span><span class="pr">${won(line)}</span></div></div>`;}).join('');
     const vat=Math.round(sub*0.1);
@@ -879,8 +912,8 @@ function printDoc(){
   <body>${reqInner(lastItems,'print',info)}</body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),350);}
 
-function resetConfig(){state={material:DATA.materials[0].id,color:DATA.materials[0].colors[0].name,
-  gang:1,mods:[null],wallboxQty:{}};document.getElementById('qty').value=1;renderAll();}
+function resetConfig(){editIdx=null;state={material:DATA.materials[0].id,color:DATA.materials[0].colors[0].name,
+  gang:1,mods:[null],wallboxQty:{}};document.getElementById('qty').value=1;renderAll();updateAddLabel();}
 
 /* 상단 단계 탭: 클릭 이동 + 현재 단계 표시 */
 function goStep(n){var e=document.getElementById('step'+n);if(e)e.scrollIntoView({behavior:'smooth',block:'start'});}
